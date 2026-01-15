@@ -122,7 +122,7 @@ function handleClick(event: MouseEvent) {
             payload: {
                 id: id,
                 tagName: target.tagName.toLowerCase(),
-                className: target.className,
+                className: typeof target.className === 'string' ? target.className : (target.getAttribute('class') || ''),
                 text: target.textContent?.substring(0, 50)
             }
         });

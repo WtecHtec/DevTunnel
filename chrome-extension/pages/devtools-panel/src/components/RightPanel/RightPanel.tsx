@@ -69,7 +69,7 @@ export const RightPanel = ({ history, selectedNodes, onRemoveNode, onSendMessage
                                 title={`<${node.tagName} class="${node.className}">`}
                             >
                                 {node.tagName}
-                                {node.className ? `.${node.className.split(' ')[0]}` : ''}
+                                {node.className ? `.${node.className?.split(' ')[0]}` : ''}
                                 <button
                                     className="ml-1 text-blue-600 hover:text-blue-800 dark:text-blue-400 dark:hover:text-blue-200"
                                     onClick={() => onRemoveNode(node.id)}
