@@ -9,7 +9,14 @@ const Panel = () => {
   const [connection, setConnection] = useState<chrome.runtime.Port | null>(null);
   const [tree, setTree] = useState<SimpleNode | null>(null);
   const [selectedNodes, setSelectedNodes] = useState<SimpleNode[]>([]);
-  const [history, setHistory] = useState<string[]>([]);
+  const [history, setHistory] = useState<string[]>(() => {
+    try {
+      const saved = localStorage.getItem('devTunnelHistory');
+      return saved ? JSON.parse(saved) : [];
+    } catch {
+      return [];
+    }
+  });
   const [inspectMode, setInspectMode] = useState(false);
   const [selectedTreeId, setSelectedTreeId] = useState<number | null>(null);
   const [devTunnelUrl, setDevTunnelUrl] = useState<string | null>(null);
@@ -91,29 +98,59 @@ const Panel = () => {
     }
   }, []);
 
-  // Initial tree load
-  useEffect(() => {
-    refreshTree();
-  }, [refreshTree]);
 
-  // Check for devtunnel parameter
+
+  // Persist history
   useEffect(() => {
+    localStorage.setItem('devTunnelHistory', JSON.stringify(history));
+  }, [history]);
+
+  const checkDevTunnelUrl = () => {
     if (chrome.devtools && chrome.devtools.inspectedWindow) {
       chrome.devtools.inspectedWindow.eval('window.location.href', (result, isException) => {
         if (!isException && typeof result === 'string') {
           try {
             const url = new URL(result);
             const devTunnelParam = url.searchParams.get('devtunnel');
-            if (devTunnelParam) {
-              setDevTunnelUrl(devTunnelParam);
-            }
+            setDevTunnelUrl(devTunnelParam || null);
           } catch (e) {
             console.error('Failed to parse inspected window URL', e);
           }
         }
       });
     }
+  };
+
+  // Check for devtunnel parameter
+  useEffect(() => {
+    checkDevTunnelUrl();
+    refreshTree();
+
+    // Listen for navigation
+    const handleNavigated = (url: string) => {
+      try {
+        const urlObj = new URL(url);
+        const devTunnelParam = urlObj.searchParams.get('devtunnel');
+        setDevTunnelUrl(devTunnelParam || null);
+      } catch (e) {
+        console.error('Failed to parse navigated URL', e);
+      }
+      // Also refresh tree on navigation
+      refreshTree();
+    };
+
+    if (chrome.devtools && chrome.devtools.network) {
+      chrome.devtools.network.onNavigated.addListener(handleNavigated);
+      return () => {
+        chrome.devtools.network.onNavigated.removeListener(handleNavigated);
+      };
+    }
   }, []);
+
+  const handleClearHistory = () => {
+    setHistory([]);
+    localStorage.removeItem('devTunnelHistory');
+  };
 
   const toggleInspect = () => {
     const newState = !inspectMode;
@@ -225,6 +262,7 @@ const Panel = () => {
           selectedNodes={selectedNodes}
           onRemoveNode={handleRemoveNode}
           onSendMessage={handleSendMessage}
+          onClearHistory={handleClearHistory}
           devTunnelUrl={devTunnelUrl || ''} // Pass empty string as fallback to match expected Type or valid string
         />
       </div>

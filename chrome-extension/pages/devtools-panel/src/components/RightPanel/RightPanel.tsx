@@ -6,10 +6,11 @@ interface RightPanelProps {
     selectedNodes: SimpleNode[];
     onRemoveNode: (nodeId: number) => void;
     onSendMessage: (message: string, role?: 'user' | 'ai') => void;
+    onClearHistory: () => void;
     devTunnelUrl?: string;
 }
 
-export const RightPanel = ({ history, selectedNodes, onRemoveNode, onSendMessage, devTunnelUrl }: RightPanelProps) => {
+export const RightPanel = ({ history, selectedNodes, onRemoveNode, onSendMessage, onClearHistory, devTunnelUrl }: RightPanelProps) => {
     const [inputValue, setInputValue] = useState('');
     const [loading, setLoading] = useState(false);
     const [status, setStatus] = useState('');
@@ -97,7 +98,18 @@ export const RightPanel = ({ history, selectedNodes, onRemoveNode, onSendMessage
                     <div>Target URL: {devTunnelUrl || 'Not found (add ?devtunnel=... to url)'}</div>
                     <div>Source ID: {sourceValues || 'Select element with data-dev-tunnel-source'}</div>
                 </div>
-                <h3 className="mb-2 font-semibold text-gray-500">History</h3>
+                <div className="mb-2 flex items-center justify-between">
+                    <h3 className="font-semibold text-gray-500">History</h3>
+                    {history.length > 0 && (
+                        <button
+                            onClick={onClearHistory}
+                            className="text-xs text-red-500 hover:text-red-700 dark:text-red-400 dark:hover:text-red-300"
+                            title="Clear History"
+                        >
+                            Clear
+                        </button>
+                    )}
+                </div>
                 {history.length === 0 ? (
                     <div className="text-sm text-gray-400">No history yet</div>
                 ) : (
