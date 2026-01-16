@@ -3,9 +3,19 @@
   "compilerOptions": {
     "baseUrl": ".",
     "paths": {
-      "@src/*": ["src/*"]
+      "@src/*": [
+        "src/*"
+      ]
     },
-    "types": ["chrome", "node"]
+    "types": [
+      "chrome",
+      "node"
+    ],
+    "jsx": "react-jsx"
   },
-  "include": ["src", "vite.config.mts", "tailwind.config.ts"]
+  "include": [
+    "src",
+    "vite.config.mts",
+    "tailwind.config.ts"
+  ]
 }

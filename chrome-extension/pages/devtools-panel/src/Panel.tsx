@@ -12,6 +12,7 @@ const Panel = () => {
   const [history, setHistory] = useState<string[]>([]);
   const [inspectMode, setInspectMode] = useState(false);
   const [selectedTreeId, setSelectedTreeId] = useState<number | null>(null);
+  const [devTunnelUrl, setDevTunnelUrl] = useState<string | null>(null);
 
   const [expandedIds, setExpandedIds] = useState<Set<number>>(new Set());
 
@@ -95,6 +96,25 @@ const Panel = () => {
     refreshTree();
   }, [refreshTree]);
 
+  // Check for devtunnel parameter
+  useEffect(() => {
+    if (chrome.devtools && chrome.devtools.inspectedWindow) {
+      chrome.devtools.inspectedWindow.eval('window.location.href', (result, isException) => {
+        if (!isException && typeof result === 'string') {
+          try {
+            const url = new URL(result);
+            const devTunnelParam = url.searchParams.get('devtunnel');
+            if (devTunnelParam) {
+              setDevTunnelUrl(devTunnelParam);
+            }
+          } catch (e) {
+            console.error('Failed to parse inspected window URL', e);
+          }
+        }
+      });
+    }
+  }, []);
+
   const toggleInspect = () => {
     const newState = !inspectMode;
     setInspectMode(newState);
@@ -148,12 +168,13 @@ const Panel = () => {
     setSelectedNodes(prev => prev.filter(n => n.id !== nodeId));
   };
 
-  const handleSendMessage = (message: string) => {
-    setHistory(prev => [...prev, `You: ${message}`]);
+  const handleSendMessage = (message: string, role: 'user' | 'ai' = 'user') => {
+    const prefix = role === 'user' ? 'You: ' : 'AI: ';
+    setHistory(prev => [...prev, `${prefix}${message}`]);
     // Simulate response or action
-    setTimeout(() => {
-      setHistory(prev => [...prev, `System: Received "${message}"`]);
-    }, 500);
+    // setTimeout(() => {
+    //   setHistory(prev => [...prev, `System: Received "${message}"`]);
+    // }, 500);
   };
 
   return (
@@ -204,6 +225,7 @@ const Panel = () => {
           selectedNodes={selectedNodes}
           onRemoveNode={handleRemoveNode}
           onSendMessage={handleSendMessage}
+          devTunnelUrl={devTunnelUrl || ''} // Pass empty string as fallback to match expected Type or valid string
         />
       </div>
     </div>

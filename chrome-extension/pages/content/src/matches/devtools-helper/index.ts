@@ -14,6 +14,7 @@ interface SimpleNode {
     className: string;
     children: SimpleNode[];
     text?: string;
+    devTunnelSource?: string;
 }
 
 function getDOMTree(element: HTMLElement): SimpleNode {
@@ -34,6 +35,7 @@ function getDOMTree(element: HTMLElement): SimpleNode {
         tagName: element.tagName.toLowerCase(),
         className: className,
         children: [],
+        devTunnelSource: element.getAttribute('data-dev-tunnel-source') || undefined,
     };
 
     // Add text content if it's a leaf node or has significant text
@@ -53,7 +55,6 @@ function getDOMTree(element: HTMLElement): SimpleNode {
 
     return node;
 }
-
 function createOverlay() {
     if (overlay) return;
     overlay = document.createElement('div');
@@ -95,7 +96,6 @@ function handleMouseMove(event: MouseEvent) {
         updateOverlay(target);
     }
 }
-
 function handleClick(event: MouseEvent) {
     if (!inspectMode) return;
     event.preventDefault();
@@ -104,16 +104,8 @@ function handleClick(event: MouseEvent) {
     const target = event.target as HTMLElement;
     if (target) {
         // Send selected element to DevTools
-        // We need to find the ID we assigned earlier, or regenerate if needed
-        // For now, let's assume we just send the basic info and maybe re-request tree or path
-        // A better approach for "Inspect" is to send the path or ID if we have the map.
-
-        // If we don't have an ID (e.g. dynamic element), we might need to refresh the tree
         let id = (target as any).__devtoolsId;
         if (!id) {
-            // Fallback: regenerate tree to ensure IDs are consistent? 
-            // Or just send tag/class for now.
-            // Let's trigger a tree refresh and then select.
             chrome.runtime.sendMessage({ type: 'refresh-tree' });
         }
 
@@ -123,7 +115,8 @@ function handleClick(event: MouseEvent) {
                 id: id,
                 tagName: target.tagName.toLowerCase(),
                 className: typeof target.className === 'string' ? target.className : (target.getAttribute('class') || ''),
-                text: target.textContent?.substring(0, 50)
+                text: target.textContent?.substring(0, 50),
+                devTunnelSource: target.getAttribute('data-dev-tunnel-source') || undefined
             }
         });
 

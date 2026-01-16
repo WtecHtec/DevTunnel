@@ -7,6 +7,7 @@ export interface SimpleNode {
     className: string;
     children: SimpleNode[];
     text?: string;
+    devTunnelSource?: string;
 }
 
 interface TreeProps {
