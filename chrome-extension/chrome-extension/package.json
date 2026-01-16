@@ -1,7 +1,7 @@
 {
-  "name": "chrome-extension",
+  "name": "dev-tunnel",
   "version": "0.5.0",
-  "description": "chrome extension - core settings",
+  "description": "dev tunnel chrome extension",
   "type": "module",
   "private": true,
   "sideEffects": false,

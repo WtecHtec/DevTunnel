@@ -30,20 +30,20 @@ export function VitePluginSource(): Plugin {
                     function injectSource() {
                         return {
                             visitor: {
-                                JSXOpeningElement(path) {
+                                JSXOpeningElement(path: any) {
                                     // 忽略 Fragment
                                     if (path.node.name.name === 'Fragment') return
 
                                     // ⚠️ 避免重复注入
                                     const hasAttr = path.node.attributes.some(
-                                        (attr: any) => attr.name?.name === 'data-source'
+                                        (attr: any) => attr.name?.name === 'data-dev-tunnel-source'
                                     )
                                     if (hasAttr) return
 
                                     // 插入 data-source 属性
                                     path.node.attributes.push({
                                         type: 'JSXAttribute',
-                                        name: { type: 'JSXIdentifier', name: 'data-source' },
+                                        name: { type: 'JSXIdentifier', name: 'data-dev-tunnel-source' },
                                         value: {
                                             type: 'StringLiteral',
                                             value: `${filename}:${path.node.loc?.start.line || 0}:${path.node.loc?.start.column || 0}`,
